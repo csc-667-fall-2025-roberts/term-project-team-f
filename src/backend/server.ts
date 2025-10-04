@@ -1,5 +1,6 @@
 import * as path from "path";
 import express from "express";
+import morgan from "morgan";
 import createHttpError from "http-errors";
 
 import rootRoutes from "./routes/root";
@@ -12,6 +13,8 @@ const PORT = process.env.PORT || 3000;
 
 // ordering is important: top -> bottom execution
 // app.use(requestTimestampMiddleware);
+
+app.use(morgan("dev"));
 
 app.use(express.static(path.join("dist", "public")));
 app.set("views", path.join(__dirname, "views")); // look for the view specified
