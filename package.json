@@ -9,12 +9,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "http-errors": "^2.0.0",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "node-pg-migrate": "^8.0.3",
+    "pg-promise": "^12.2.0"
   },
   "devDependencies": {
+    "@types/node-pg-migrate": "^2.3.1",
     "@types/express": "^5.0.3",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.6.2",
