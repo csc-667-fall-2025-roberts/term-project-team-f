@@ -5,8 +5,7 @@ import * as path from "path";
 
 import bodyParser from "body-parser";
 import { configDotenv } from "dotenv";
-import rootRoutes from "./routes/root";
-import { userRoutes } from "./routes/user";
+import * as routes from "./routes";
 
 configDotenv();
 
@@ -33,8 +32,8 @@ const viewsDir = isDev
 app.set("views", viewsDir);
 app.set("view engine", "ejs");
 
-app.use("/", rootRoutes);
-app.use("/users", userRoutes);
+app.use("/", routes.root);
+app.use("/auth", routes.auth);
 
 app.use((_request, _response, next) => {
   next(createHttpError(404));
