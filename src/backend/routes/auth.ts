@@ -27,7 +27,7 @@ router.post("/signup", async (request, response) => {
 // LOGIN
 
 router.get("/login", async (_request, response) => {
-  response.render("/auth/signin");
+  response.render("auth/login");
 });
 
 // will receive the information
