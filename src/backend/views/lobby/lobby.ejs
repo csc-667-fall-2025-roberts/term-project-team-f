@@ -3,11 +3,140 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lobby</title>
-    <script src="/js/chat.js" defer></script>
+    <title>Lobby - Bullshit</title>
+    <link rel="stylesheet" href="/js/bundle.css" />
   </head>
   <body>
-    <a href="/auth/logout">Logout</a>
-    <h1>Hello <% user.name %> (<% user.id %> )</h1>
+    <div class="lobby-page">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <a href="/lobby" class="header-logo">
+            <span class="logo-icon">🃏</span>
+            Bullshit
+          </a>
+          
+          <nav class="header-nav">
+            <div class="header-user">
+              <span>Welcome,</span>
+              <span class="username"><%= user.username %></span>
+            </div>
+            <a href="/auth/logout" class="btn btn-secondary btn-sm">Logout</a>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="lobby-grid">
+          <!-- Games Section -->
+          <div class="games-section">
+            <!-- Create Game Card -->
+            <div class="create-game-card">
+              <h2>🎮 Create New Game</h2>
+              <form class="create-game-form" method="post" action="/games">
+                <div class="form-group">
+                  <label class="form-label" for="game-name">Game Name</label>
+                  <input 
+                    type="text" 
+                    id="game-name"
+                    name="name"
+                    class="form-input form-input-dark"
+                    placeholder="Enter game name..."
+                    required
+                  />
+                </div>
+                <div class="form-group players-group">
+                  <label class="form-label" for="max-players">Players</label>
+                  <select 
+                    id="max-players"
+                    name="maxPlayers"
+                    class="form-select"
+                  >
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4" selected>4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                  Create Game
+                </button>
+              </form>
+            </div>
+
+            <!-- Games List -->
+            <div class="games-list-card">
+              <div class="games-list-header">
+                <h2>🎲 Available Games</h2>
+                <span class="games-count"><%= games.length %></span>
+              </div>
+              
+              <div class="games-list">
+                <% if (games.length === 0) { %>
+                  <div class="games-empty">
+                    <div class="icon">🃏</div>
+                    <h3>No games available</h3>
+                    <p>Create a new game to get started!</p>
+                  </div>
+                <% } else { %>
+                  <% games.forEach(function(game) { %>
+                    <div class="game-item">
+                      <div class="game-info">
+                        <div class="game-name"><%= game.name %></div>
+                        <div class="game-meta">
+                          <span class="players">
+                            👥 <%= game.player_count %>/<%= game.max_players %> players
+                          </span>
+                          <span class="creator">
+                            by <%= game.creator_username %>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="game-actions">
+                        <% if (parseInt(game.player_count) < game.max_players) { %>
+                          <form method="post" action="/games/<%= game.id %>/join" style="display: inline;">
+                            <button type="submit" class="btn btn-success btn-sm">Join</button>
+                          </form>
+                        <% } else { %>
+                          <span class="badge badge-warning">Full</span>
+                        <% } %>
+                        <a href="/games/<%= game.id %>" class="btn btn-outline btn-sm">View</a>
+                      </div>
+                    </div>
+                  <% }); %>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Sidebar -->
+          <div class="chat-sidebar">
+            <div class="chat-card">
+              <div class="chat-header">
+                <h3>💬 Lobby Chat</h3>
+              </div>
+              <div class="chat-messages" id="message-listing">
+                <!-- Messages will be loaded via socket.io -->
+                <div class="games-empty" style="padding: 2rem;">
+                  <p>Chat coming soon...</p>
+                </div>
+              </div>
+              <div class="chat-input-area" id="messsage-submit">
+                <input 
+                  type="text" 
+                  class="form-input form-input-dark"
+                  placeholder="Type a message..."
+                />
+                <button class="btn btn-primary btn-sm">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="/js/chat.js" defer></script>
   </body>
 </html>

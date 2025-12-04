@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= game.name %> - Bullshit</title>
+    <link rel="stylesheet" href="/js/bundle.css" />
+  </head>
+  <body>
+    <div class="game-page">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <a href="/lobby" class="header-logo">
+            <span class="logo-icon">🃏</span>
+            Bullshit
+          </a>
+          
+          <nav class="header-nav">
+            <div class="header-user">
+              <span>Playing as</span>
+              <span class="username"><%= user.username %></span>
+            </div>
+            <a href="/lobby" class="btn btn-secondary btn-sm">← Back to Lobby</a>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Game Info Bar -->
+        <div class="game-info-bar">
+          <div class="game-title">
+            <h1><%= game.name %></h1>
+            <span class="game-status-badge <%= game.state %>">
+              <%= game.state.charAt(0).toUpperCase() + game.state.slice(1) %>
+            </span>
+          </div>
+          <div class="game-status">
+            <span>👥 <%= players.length %>/<%= game.max_players %> players</span>
+            <% if (game.state === 'waiting' && !isPlayer) { %>
+              <form method="post" action="/games/<%= game.id %>/join" style="display: inline;">
+                <button type="submit" class="btn btn-success">Join Game</button>
+              </form>
+            <% } %>
+            <% if (isPlayer && game.state === 'waiting') { %>
+              <form method="post" action="/games/<%= game.id %>/leave" style="display: inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Leave Game</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="game-layout">
+          <!-- Game Table Area -->
+          <div class="game-table-area">
+            <% if (game.state === 'waiting') { %>
+              <!-- Waiting Room -->
+              <div class="game-table">
+                <div class="waiting-room">
+                  <h2>⏳ Waiting for Players</h2>
+                  <p class="waiting-message">
+                    Need at least 2 players to start. Currently <%= players.length %>/<%= game.max_players %>.
+                  </p>
+                  
+                  <div class="waiting-players">
+                    <% players.forEach(function(player) { %>
+                      <div class="waiting-player">
+                        <div class="avatar avatar-lg">
+                          <%= player.username.charAt(0).toUpperCase() %>
+                        </div>
+                        <span class="name"><%= player.username %></span>
+                      </div>
+                    <% }); %>
+                    
+                    <% for (let i = players.length; i < game.max_players; i++) { %>
+                      <div class="waiting-player">
+                        <div class="waiting-slot">?</div>
+                      </div>
+                    <% } %>
+                  </div>
+
+                  <% if (isPlayer && players.length >= 2 && game.created_by === user.id) { %>
+                    <button class="btn btn-primary btn-lg mt-6" disabled>
+                      🎮 Start Game (Coming Soon)
+                    </button>
+                  <% } %>
+                </div>
+              </div>
+            <% } else { %>
+              <!-- Active Game Table -->
+              <div class="game-table">
+                <!-- Player Positions -->
+                <div class="player-positions">
+                  <% const positions = ['top', 'right', 'bottom', 'left']; %>
+                  <% players.slice(0, 4).forEach(function(player, index) { %>
+                    <div class="player-seat <%= positions[index] %> <%= player.user_id === game.current_turn ? 'current-turn' : '' %>">
+                      <div class="player-avatar-large <%= player.user_id === game.current_turn ? 'current-turn' : '' %>">
+                        <%= player.username.charAt(0).toUpperCase() %>
+                      </div>
+                      <span class="player-name"><%= player.username %></span>
+                      <span class="player-card-count">? cards</span>
+                    </div>
+                  <% }); %>
+                </div>
+
+                <!-- Center Pile -->
+                <div class="center-pile">
+                  <div class="pile-cards">
+                    <div class="pile-card"></div>
+                    <div class="pile-card"></div>
+                    <div class="pile-card"></div>
+                  </div>
+                  <div class="pile-info">
+                    <div class="pile-count">0</div>
+                    <div class="pile-label">cards in pile</div>
+                  </div>
+                  <div class="current-rank">
+                    <%= game.current_rank || 'Aces' %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Player's Hand -->
+              <div class="hand-area">
+                <div class="hand-header">
+                  <h3>🎴 Your Hand</h3>
+                  <span class="badge badge-info">0 cards</span>
+                </div>
+                
+                <div class="hand-cards">
+                  <!-- Example cards for mockup -->
+                  <div class="playing-card hearts">
+                    <span class="card-rank">A</span>
+                    <span class="card-suit">♥</span>
+                  </div>
+                  <div class="playing-card spades">
+                    <span class="card-rank">K</span>
+                    <span class="card-suit">♠</span>
+                  </div>
+                  <div class="playing-card diamonds">
+                    <span class="card-rank">Q</span>
+                    <span class="card-suit">♦</span>
+                  </div>
+                  <div class="playing-card clubs">
+                    <span class="card-rank">J</span>
+                    <span class="card-suit">♣</span>
+                  </div>
+                  <div class="playing-card hearts">
+                    <span class="card-rank">10</span>
+                    <span class="card-suit">♥</span>
+                  </div>
+                  <div class="playing-card spades selected">
+                    <span class="card-rank">9</span>
+                    <span class="card-suit">♠</span>
+                  </div>
+                  <div class="playing-card diamonds">
+                    <span class="card-rank">7</span>
+                    <span class="card-suit">♦</span>
+                  </div>
+                </div>
+
+                <div class="action-buttons">
+                  <button class="btn btn-primary" disabled>
+                    🃏 Play Cards (0 selected)
+                  </button>
+                  <button class="btn btn-warning" disabled>
+                    🎭 Call Bullshit!
+                  </button>
+                </div>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Game Sidebar -->
+          <div class="game-sidebar">
+            <!-- Players List -->
+            <div class="players-card">
+              <div class="players-header">
+                <h3>👥 Players</h3>
+              </div>
+              <div class="players-list">
+                <% players.forEach(function(player) { %>
+                  <div class="player-item <%= player.user_id === user.id ? 'current' : '' %>">
+                    <div class="avatar">
+                      <%= player.username.charAt(0).toUpperCase() %>
+                    </div>
+                    <div class="player-details">
+                      <div class="name">
+                        <%= player.username %>
+                        <% if (player.user_id === user.id) { %>(You)<% } %>
+                      </div>
+                      <div class="role">
+                        <% if (player.user_id === game.created_by) { %>Host<% } else { %>Player<% } %>
+                      </div>
+                    </div>
+                    <% if (game.state !== 'waiting') { %>
+                    <div class="player-stats">
+                      <div class="cards">?</div>
+                      <div class="label">cards</div>
+                    </div>
+                    <% } %>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+
+            <!-- Game Chat -->
+            <div class="game-chat">
+              <div class="chat-header">
+                <h3>💬 Game Chat</h3>
+              </div>
+              <div class="chat-messages" id="game-messages">
+                <div class="games-empty" style="padding: 1rem;">
+                  <p style="font-size: 0.875rem; color: var(--color-gray-400);">
+                    Chat coming soon...
+                  </p>
+                </div>
+              </div>
+              <div class="chat-input-area">
+                <input 
+                  type="text" 
+                  class="form-input form-input-dark"
+                  placeholder="Type a message..."
+                  style="font-size: 0.875rem;"
+                />
+                <button class="btn btn-primary btn-sm">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
+

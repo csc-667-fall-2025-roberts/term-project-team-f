@@ -1,7 +1,5 @@
 import express from "express";
-import db from "../db/connection";
 import { Auth } from "../db";
-import { error } from "console";
 
 const router = express.Router();
 
@@ -11,13 +9,15 @@ router.get("/signup", async (_request, response) => {
   response.render("auth/signup");
 });
 
-// will receive the information
 router.post("/signup", async (request, response) => {
   const { username, email, password } = request.body;
 
   try {
     const user = await Auth.signup(username, email, password);
-    // hook up to sessions
+    
+    // Save user to session
+    request.session.user = user;
+    
     response.redirect("/lobby");
   } catch (e: any) {
     response.render("auth/signup", { error: e });
@@ -30,18 +30,22 @@ router.get("/login", async (_request, response) => {
   response.render("auth/login");
 });
 
-// will receive the information
 router.post("/login", async (request, response) => {
   const { username, password } = request.body;
 
   try {
     const user = await Auth.login(username, password);
-
-    // hook up to session
+    
+    // Save user to session
+    request.session.user = user;
+    
+    response.redirect("/lobby");
   } catch (e: any) {
     response.render("auth/login", { error: e });
   }
 });
+
+// LOGOUT
 
 router.get("/logout", async (request, response) => {
   await new Promise((resolve, reject) => {

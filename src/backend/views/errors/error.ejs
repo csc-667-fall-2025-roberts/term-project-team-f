@@ -3,11 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Error <%= status %> - Bullshit</title>
+    <link rel="stylesheet" href="/js/bundle.css" />
   </head>
   <body>
-    <h1>Error</h1>
-    <!-- <p><%= message %></p> -->
-    <a href="/">back</a>
+    <div class="error-page">
+      <div class="error-container">
+        <div class="error-icon <%= status === 404 ? 'not-found' : (status >= 500 ? 'server-error' : 'forbidden') %>">
+          <% if (status === 404) { %>
+            🔍
+          <% } else if (status >= 500) { %>
+            💥
+          <% } else if (status === 403) { %>
+            🚫
+          <% } else { %>
+            ⚠️
+          <% } %>
+        </div>
+
+        <div class="error-code"><%= status %></div>
+        
+        <h1 class="error-title">
+          <% if (status === 404) { %>
+            Page Not Found
+          <% } else if (status === 403) { %>
+            Access Denied
+          <% } else if (status >= 500) { %>
+            Server Error
+          <% } else { %>
+            Something Went Wrong
+          <% } %>
+        </h1>
+
+        <p class="error-message">
+          <%= message %>
+        </p>
+
+        <div class="error-actions">
+          <a href="/" class="btn btn-primary">
+            🏠 Go Home
+          </a>
+          <a href="/lobby" class="btn btn-secondary">
+            🎮 Go to Lobby
+          </a>
+        </div>
+
+        <% if (stack) { %>
+          <div class="error-stack">
+            <pre><%= stack %></pre>
+          </div>
+        <% } %>
+      </div>
+    </div>
   </body>
 </html>

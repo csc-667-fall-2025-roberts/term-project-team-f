@@ -1,30 +1,14 @@
 import { MigrationBuilder } from "node-pg-migrate";
 
-export async function up(pgm: MigrationBuilder): Promise<void> {
-  pgm.createTable("users", {
-    id: "id",
-    username: {
-      type: "varchar(50)",
-      notNull: true,
-      unique: true,
-    },
-    email: {
-      type: "varchar(100)",
-      notNull: true,
-      unique: true,
-    },
-    password: {
-      type: "varchar(255)",
-      notNull: true,
-    },
-    created_at: {
-      type: "timestamp",
-      notNull: true,
-      default: pgm.func("current_timestamp"),
-    },
-  });
+// NOTE: This migration is a no-op because the users table
+// was already created in an earlier migration (1762894348318).
+// Keeping this file for migration history consistency.
+
+export async function up(_pgm: MigrationBuilder): Promise<void> {
+  // Users table already exists from 1762894348318_create-chat-message-table.ts
+  // This is intentionally empty to avoid "table already exists" error
 }
 
-export async function down(pgm: MigrationBuilder): Promise<void> {
-  pgm.dropTable("users");
+export async function down(_pgm: MigrationBuilder): Promise<void> {
+  // No-op - the users table is dropped in the original migration's down()
 }

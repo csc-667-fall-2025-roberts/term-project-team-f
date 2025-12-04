@@ -3,63 +3,68 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sign up</title>
+    <title>Sign Up - Bullshit</title>
     <link rel="stylesheet" href="/js/bundle.css" />
   </head>
   <body>
-    <div class="auth-container">
-      <div class="auth-header">
-        <h1>Create Account</h1>
-        <p>Sign up to get started with your game</p>
-      </div>
-
-      <form class="auth-form" method="post" action="/auth/signup">
-        <% if (locals.error) { %>
-        <div class="error-message">
-          <%= locals.error %>
-        </div>
-        <% } %>
-
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input 
-            type="text" 
-            id="username"
-            name="username" 
-            placeholder="Choose a username"
-            required 
-            autofocus
-          />
+    <div class="auth-page">
+      <div class="auth-container">
+        <a href="/" class="auth-back">← Back to home</a>
+        
+        <div class="auth-header">
+          <div class="logo">🃏</div>
+          <h1>Create Account</h1>
+          <p>Sign up to start playing Bullshit</p>
         </div>
 
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input 
-            type="email" 
-            id="email"
-            name="email" 
-            placeholder="Enter your email"
-            required
-          />
+        <form class="auth-form" method="post" action="/auth/signup">
+          <% if (locals.error) { %>
+          <div class="error-message">
+            <%= locals.error %>
+          </div>
+          <% } %>
+
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input 
+              type="text" 
+              id="username"
+              name="username" 
+              placeholder="Choose a username"
+              required 
+              autofocus
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+              type="email" 
+              id="email"
+              name="email" 
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input 
+              type="password" 
+              id="password"
+              name="password" 
+              placeholder="Create a password"
+              required
+            />
+          </div>
+
+          <button type="submit" class="submit-btn">Create Account</button>
+        </form>
+
+        <div class="auth-footer">
+          <p>Already have an account?</p>
+          <a href="/auth/login">Sign in instead</a>
         </div>
-
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input 
-            type="password" 
-            id="password"
-            name="password" 
-            placeholder="Create a password"
-            required
-          />
-        </div>
-
-        <button type="submit" class="submit-btn">Sign Up</button>
-      </form>
-
-      <div class="auth-footer">
-        <p>Already have an account?</p>
-        <a href="/auth/login">Sign in instead</a>
       </div>
     </div>
   </body>

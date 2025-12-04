@@ -1,2 +1,18 @@
+/* ============================================
+   Main Stylesheet - Bullshit Card Game
+   ============================================ */
+
+/* Core styles */
+@import "./styles/variables.css";
 @import "./styles/base.css";
+
+/* Layout and Components */
+@import "./styles/layout.css";
+@import "./styles/components.css";
+
+/* Page-specific styles */
+@import "./styles/root.css";
 @import "./styles/auth.css";
+@import "./styles/lobby.css";
+@import "./styles/game.css";
+@import "./styles/error.css";

@@ -9,7 +9,7 @@ export const RECENT_MESSAGES = `
 SELECT 
   chat_messages.*, users.username, users.email
 FROM chat_messages, users
-WHERE users.id=chat_messages.user_id
-ORDER_BY chat_messages.created_at DESC
+WHERE users.id = chat_messages.user_id
+ORDER BY chat_messages.created_at DESC
 LIMIT $1
 `;

@@ -1,9 +1,60 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <link rel="stylesheet" href="temp.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bullshit - The Card Game</title>
+    <link rel="stylesheet" href="/js/bundle.css" />
   </head>
   <body>
-    <a href="/auth/login">Login</a>
-    <a href="/auth/signup">Sign up</a>
+    <div class="landing-page">
+      <div class="landing-container">
+        <div class="landing-logo">
+          <div class="logo-icon">🃏</div>
+          <h1>Bullshit</h1>
+          <p class="tagline">The Classic Bluffing Card Game</p>
+        </div>
+
+        <div class="landing-cards">
+          <div class="landing-card hearts">A♥</div>
+          <div class="landing-card spades">K♠</div>
+          <div class="landing-card diamonds">Q♦</div>
+          <div class="landing-card clubs">J♣</div>
+          <div class="landing-card hearts">10♥</div>
+        </div>
+
+        <div class="landing-actions">
+          <a href="/auth/login" class="btn btn-primary btn-lg">
+            Sign In to Play
+          </a>
+          
+          <div class="landing-divider">
+            <span>or</span>
+          </div>
+          
+          <a href="/auth/signup" class="btn btn-outline">
+            Create an Account
+          </a>
+        </div>
+
+        <div class="landing-features">
+          <div class="feature-item">
+            <div class="icon">🎮</div>
+            <h3>Multiplayer</h3>
+            <p>Play with friends online</p>
+          </div>
+          <div class="feature-item">
+            <div class="icon">🎭</div>
+            <h3>Bluff & Call</h3>
+            <p>Master the art of deception</p>
+          </div>
+          <div class="feature-item">
+            <div class="icon">🏆</div>
+            <h3>Win Games</h3>
+            <p>Be the first to empty your hand</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
