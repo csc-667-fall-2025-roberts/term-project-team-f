@@ -1,0 +1,19 @@
+<header class="header">
+  <div class="header-content">
+    <a href="/lobby" class="header-logo">
+      <span class="logo-icon">🃏</span>
+      Bullshit
+    </a>
+    
+    <nav class="header-nav">
+      <% if (typeof user !== 'undefined' && user) { %>
+        <div class="header-user">
+          <span><%= typeof headerText !== 'undefined' ? headerText : 'Welcome,' %></span>
+          <span class="username"><%= user.username %></span>
+        </div>
+        <a href="/auth/logout" class="btn btn-secondary btn-sm">Logout</a>
+      <% } %>
+    </nav>
+  </div>
+</header>
+

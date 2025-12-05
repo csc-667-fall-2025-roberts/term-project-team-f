@@ -4,12 +4,16 @@ VALUES ($1, $2)
 RETURNING id, user_id, message, created_at
 `;
 
-// get most recent messages in descending order
+// Get most recent messages with proper JOIN syntax
 export const RECENT_MESSAGES = `
 SELECT 
-  chat_messages.*, users.username, users.email
-FROM chat_messages, users
-WHERE users.id = chat_messages.user_id
+  chat_messages.id,
+  chat_messages.user_id,
+  chat_messages.message,
+  chat_messages.created_at,
+  users.username
+FROM chat_messages
+JOIN users ON users.id = chat_messages.user_id
 ORDER BY chat_messages.created_at DESC
 LIMIT $1
 `;

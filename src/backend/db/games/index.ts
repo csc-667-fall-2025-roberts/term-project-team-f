@@ -7,19 +7,9 @@ import {
   UPDATE_GAME_STATE,
   DELETE_GAME,
 } from "./sql";
+import type { Game } from "../../../shared/types";
 
-export interface Game {
-  id: number;
-  name: string;
-  created_by: number;
-  state: string;
-  max_players: number;
-  current_turn: number | null;
-  current_rank: string | null;
-  created_at: Date;
-  creator_username?: string;
-  player_count?: number;
-}
+export type { Game };
 
 const create = async (
   name: string,
@@ -43,7 +33,7 @@ const getWaiting = async (): Promise<Game[]> => {
 
 const updateState = async (
   id: number,
-  state: "waiting" | "playing" | "finished",
+  state: Game["state"],
 ): Promise<Game> => {
   return await db.one<Game>(UPDATE_GAME_STATE, [id, state]);
 };

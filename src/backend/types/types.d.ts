@@ -1,18 +1,8 @@
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  created_at: Date;
-}
-
-export interface SecureUser extends User {
-  password: string;
-}
-
-export interface ChatMessage {
-  id: number;
-  user_id: number;
-  username: string;
-  message: string;
-  created_at: Date;
-}
+// Re-export shared types for backward compatibility
+export type {
+  User,
+  SecureUser,
+  ChatMessage,
+  Game,
+  GamePlayer,
+} from "../../shared/types";

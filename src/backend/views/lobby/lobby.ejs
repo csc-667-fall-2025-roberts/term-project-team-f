@@ -1,30 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <%- include('../partials/head') %>
     <title>Lobby - Bullshit</title>
-    <link rel="stylesheet" href="/js/bundle.css" />
   </head>
   <body>
     <div class="lobby-page">
       <!-- Header -->
-      <header class="header">
-        <div class="header-content">
-          <a href="/lobby" class="header-logo">
-            <span class="logo-icon">🃏</span>
-            Bullshit
-          </a>
-          
-          <nav class="header-nav">
-            <div class="header-user">
-              <span>Welcome,</span>
-              <span class="username"><%= user.username %></span>
-            </div>
-            <a href="/auth/logout" class="btn btn-secondary btn-sm">Logout</a>
-          </nav>
-        </div>
-      </header>
+      <%- include('../partials/header', { user, headerText: 'Welcome,' }) %>
 
       <!-- Main Content -->
       <main class="main-content">

@@ -8,17 +8,9 @@ import {
   UPDATE_PLAYER_HAND,
   GET_USER_GAMES,
 } from "./sql";
+import type { GamePlayer } from "../../../shared/types";
 
-export interface GamePlayer {
-  id: number;
-  game_id: number;
-  user_id: number;
-  hand: string[];
-  position: number;
-  joined_at: Date;
-  username?: string;
-  email?: string;
-}
+export type { GamePlayer };
 
 const join = async (gameId: number, userId: number): Promise<GamePlayer> => {
   return await db.one<GamePlayer>(JOIN_GAME, [gameId, userId]);
