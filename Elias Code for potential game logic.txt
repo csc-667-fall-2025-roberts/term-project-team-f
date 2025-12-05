@@ -1,0 +1,185 @@
+//===========Database Tables================
+//Players in a game
+CREATE TABLE game_players (
+    game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,  
+    joined_at TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (game_id, user_id)
+);
+
+//Game State
+CREATE TABLE game_state(
+    game_id INTEGER PRIMARY KEY REFERENCES games(id) ON DELETE CASCADE,
+    //Whose turn it is
+    current_turn INTEGER REFERENCES users(id),
+    //Cards in pile
+    pile JSONB DEFAULT '[]', 
+    //Cards rank as 1,2,3,4...Jack,Queen,King
+    declared_rank TEXT,
+    //Waiting
+    state TEXT DEFAULT 'waiting'
+);
+
+//Players Hand
+CREATE TABLE player_hands(
+    game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    //Array of cards in hand
+    cards JSONB, 
+    PRIMARY KEY (game_id, user_id)
+);
+
+//================Games Utilities=============================
+function createNewGameState(players){
+    const deck = shuffleDeck(createDeck()); //52 Cards
+    const hands = dealCards(deck,players);
+    return {
+        pile: [],
+        declared_rank:null,
+        current_turn: players[0], //Start at first player
+        hands: hands, //Players cards
+        state: "in_progress"
+    };
+}
+
+//================Game Functions=======================
+// creating a game
+app.post("/games", async (req, res) => {
+    const { name, maxPlayers } = req.body; 
+    const userId = req.session.userId;
+
+    // Insert the game into the 'games' table
+    const gameResult = await db.query(
+        `INSERT INTO games (name, created_by, max_players)
+         VALUES ($1, $2, $3) RETURNING id`,
+        [name, userId, maxPlayers]
+    );
+
+    const gameId = gameResult.rows[0].id;
+
+    await db.query(
+        `INSERT INTO game_players (game_id, user_id)
+         VALUES ($1, $2)`,
+        [gameId, userId]
+    );
+
+//Joining a game
+app.post("/games/:id/join", async (req, res) => {
+    const gameId = req.params.id;
+    const userId = req.session.userId;  // Get the current user
+    
+    // Check if game exists and if the game is not full
+    const gameResult = await db.query(
+        `SELECT * FROM games WHERE id = $1`,
+        [gameId]
+    );
+    const game = gameResult.rows[0];
+    if (!game || game.state !== 'waiting' || game.max_players <= game.players.length) {
+        return res.status(400).send("Game is full or already started.");
+    }
+
+    // Add the player to the game
+    await db.query(
+        `INSERT INTO game_players (game_id, user_id) 
+         VALUES ($1, $2)`,
+        [gameId, userId]
+    );
+
+    res.redirect(`/games/${gameId}`);
+});
+
+//Starting a game
+app.post("/games/:id/start", async (req, res) => {
+    const gameId = req.params.id;
+
+    // Fetch the game from DB
+    const { rows } = await db.query(
+        `SELECT * FROM games WHERE id = $1`,
+        [gameId]
+    );
+    const game = rows[0];
+    
+    if (game.state !== 'waiting') {
+        return res.status(400).send("Game has already started.");
+    }
+
+    // Initialize the game state (you can also use an external game engine file)
+    const gameState = createNewGameState();  // your logic for initializing the game
+
+    // Update the game state in the database
+    await db.query(
+        `UPDATE games SET game_state = $1, state = 'in_progress' WHERE id = $2`,
+        [JSON.stringify(gameState), gameId]
+    );
+
+    res.redirect(`/games/${gameId}`);
+});
+
+//Player Move
+app.post("/games/:id/play", async (req, res) => {
+    const { cardsPlayed, declaredRank } = req.body;
+    const userId = req.session.userId;
+    const gameId = req.params.id;
+
+    let gameState = await loadGameState(gameId);
+
+    if(gameState.current_turn !== userId){
+        return res.status(400).send("Not your turn");
+    }
+  //Removing Card from hand
+  gameState.hands[userId] = gameState.hands[userId].filter(
+      card => !cardsPlayed.some(c=> c.rank == card.rank && c.suit == card.suit)
+    );
+
+  //Adding Card to pile
+  gameState.pile.push(...cardsPlayed);
+  gameState.declared_rank = declaredRank;
+
+  //Next player turn
+  gameState.current_turn = getNextPlayer(gameState, userId);
+
+  await saveGameState(gameId,gameState);
+  res.json(gameState);
+});
+
+//Challenging "Calling Bullshit"
+app.post("/games/:id/challenge", async (req, res) => {
+    const userId = req.session.userId;
+    const gameId = req.params.id;
+
+    let gameState = await loadGameState(gameId);
+
+    const lastPlayedCards = gameState.pile.slice(-req.body.count);
+    const truth = lastPlayedCards.every(card => card.rank === gameState.declared_rank);
+
+    if(truth) {
+      //Player who called Bullshit picks up pile
+      gameState.hands[userId].push(...gameState.pile);
+    } else{
+      //The liar picks up pile
+      const lastPlayer = getPreviousPlayer(gameState);
+      gameState.hands[lastPlayer].push(...gameState.pile);
+    }
+
+    gameState.pile = [];
+    await saveGameState(gameID,gameState);
+    res.json(gameState);
+});
+
+
+
+//FrontEnd
+async function loadGameState(gameId) {
+    const res = await fetch(`/api/games/${gameId}`);
+    const gameState = await res.json();
+    renderGame(gameState);
+}
+
+function renderGame(state) {
+    // Render cards, player hands, and other game elements
+    document.getElementById("game-board").innerHTML = renderCards(state.pile);
+}
+
+function renderCards(state) {
+    return state.cards.map(card => `<div class="card">${card}</div>`).join('');
+}
