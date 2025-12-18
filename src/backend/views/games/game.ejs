@@ -3,6 +3,11 @@
   <head>
     <%- include('../partials/head') %>
     <title><%= game.name %> - Bullshit</title>
+
+    <script>
+      const GAME_ID = <%= game.id %>;
+      console.log("GAME_ID loaded:", GAME_ID);
+    </script>
   </head>
   <body>
     <div class="game-page">
