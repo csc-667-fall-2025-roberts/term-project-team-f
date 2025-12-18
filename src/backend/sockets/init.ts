@@ -29,6 +29,13 @@ export const initSockets = (httpServer: HttpServer) => {
     logger.info(`Socket connected: ${session.user.username}`);
     socket.join(session.id);
 
+    socket.on("joinGameRoom", (gameId: number) => {
+      if (!session?.user) return;
+      const roomName = `game-${gameId}`;
+      socket.join(roomName);
+      logger.info(`User ${session.user.username} joined room ${roomName}`);
+    });
+
     socket.on("disconnect", () => {
       logger.info(`Socket disconnected: ${session.user?.username}`);
     });

@@ -2,7 +2,14 @@ import socketIo from "socket.io-client";
 import type { ChatMessage } from "../shared/types";
 import * as messageKeys from "../shared/chat-keys";
 
+declare const GAME_ID: number;
 const socket = socketIo();
+
+if (typeof GAME_ID !== "undefined"){
+  socket.emit("joinGameRoom", GAME_ID);
+}
+
+
 const listing = document.querySelector<HTMLDivElement>("#message-listing");
 const messageText = document.querySelector<HTMLInputElement>(
   "#messsage-submit input",
@@ -60,7 +67,7 @@ if (!listing || !messageText || !submitButton) {
     const message = messageText.value.trim();
 
     if (message.length > 0) {
-      fetch("/chat/", {
+      fetch("/chat/${GAME_ID}", {
         method: "POST",
         body: JSON.stringify({ message }),
         credentials: "include",

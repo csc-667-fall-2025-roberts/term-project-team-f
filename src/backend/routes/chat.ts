@@ -5,9 +5,10 @@ import * as messageKeys from "../../shared/chat-keys";
 const router = express.Router();
 
 // POST /chat - Create a new chat message
-router.post("/", async (request, response) => {
+router.post(`/:gameId`, async (request, response) => {
   const { user } = request.session;
   const { message } = request.body;
+  const { gameId } = request.params;
 
   if (!user) {
     response.status(401).json({ error: "Not authenticated" });
@@ -20,11 +21,13 @@ router.post("/", async (request, response) => {
   }
 
   try {
-    const chatMessage = await Chat.create(user.id.toString(), message.trim());
+    const chatMessage = await Chat.create(user.id.toString(), message.trim(), Number(gameId), 
+    );
 
     // Broadcast message to all connected clients
     const io = request.app.get("io");
-    io.emit(messageKeys.CHAT_MESSAGE(), {
+    const gameId = request.params.gameId;
+    io.to(`game-${gameId}`).emit(messageKeys.CHAT_MESSAGE(), {
       ...chatMessage,
       username: user.username,
     });

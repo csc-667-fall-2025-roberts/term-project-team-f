@@ -1,6 +1,6 @@
 export const CREATE_GAME = `
-INSERT INTO games (name, created_by, max_players)
-VALUES ($1, $2, $3)
+INSERT INTO games (name, created_by, max_players, state)
+VALUES ($1, $2, $3, 'waiting')
 RETURNING id, name, created_by, state, max_players, created_at
 `;
 
