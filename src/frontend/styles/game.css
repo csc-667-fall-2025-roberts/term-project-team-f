@@ -540,3 +540,21 @@
   color: var(--color-gray-600);
   font-size: var(--font-size-lg);
 }
+
+/* Card Selection Styles */
+.card {
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  border-color: #666 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.card.selected {
+  transform: translateY(-12px);
+  border-color: #4CAF50 !important;
+  background: #e8f5e9 !important;
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}

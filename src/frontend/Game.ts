@@ -262,7 +262,7 @@ function handlePlayerAction(action: { type: string; [key: string]: any }) {
 
   if (action.type === "challengeResult") {
     const { liar, challengerName, challengedName, declaredRank, revealed } = action;
-    const verdict = liar ? `${challengedName} was bluffing!` : `${challengerName} guessed wrong.`;
+    const verdict = liar ? `${challengedName} was bullshitting!` : `${challengerName} guessed wrong.`;
     const revealText = Array.isArray(revealed) ? `Revealed: ${revealed.join(", ")}` : "";
     alert(`${challengerName} challenged ${challengedName} on ${declaredRank}. ${verdict} ${revealText}`);
   }

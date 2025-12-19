@@ -1,11 +1,11 @@
-import { createDeck, shuffle, dealAll } from "../game/engine";
+import { createDeck, shuffle, dealAll } from "../engine"
 import express, { response } from "express";
 import { Games, GamePlayers } from "../db";
 
 
 const router = express.Router();
 
-// GET /games - List all games (API endpoint)
+// List all games 
 router.get("/", async (request, response) => {
   try {
     const games = await Games.getWaiting();
@@ -15,7 +15,7 @@ router.get("/", async (request, response) => {
   }
 });
 
-// POST /games - Create a new game
+// Create a new game
 router.post("/", async (request, response) => {
   const { user } = request.session;
   const { name, maxPlayers } = request.body;
@@ -31,23 +31,71 @@ router.post("/", async (request, response) => {
   }
 
   try {
+    console.log("Creating game:", { name, maxPlayers, userId: user.id });
     const game = await Games.create(
       name.trim(),
       user.id,
       maxPlayers ? parseInt(maxPlayers, 10) : 4,
     );
 
+    console.log("Game created:", game);
+
     // Auto-join the creator to the game
     await GamePlayers.join(game.id, user.id);
 
+    console.log("Creator joined game");
     response.redirect(`/games/${game.id}`);
   } catch (error) {
     console.error("Failed to create game:", error);
-    response.status(500).json({ error: "Failed to create game" });
+    response.status(500).render("errors/error", {
+      status: 500,
+      message: `Failed to create game: ${error instanceof Error ? error.message : "Unknown error"}`,
+      stack: error instanceof Error ? error.stack : null,
+    });
   }
 });
 
-// GET /games/:id - View a specific game
+// get game state with player's hand 
+router.get("/:id/state", async (request, response) => {
+  const { user } = request.session;
+  const gameId = parseInt(request.params.id, 10);
+
+  if (!user) {
+    return response.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    const game = await Games.getById(gameId);
+    
+    if (!game) {
+      return response.status(404).json({ error: "Game not found" });
+    }
+
+    const players = await GamePlayers.getPlayers(gameId);
+    const playerData = players.find((p) => p.user_id === user.id);
+    
+    let playerHand: string[] = [];
+    if (playerData && playerData.hand) {
+      if (typeof playerData.hand === "string") {
+        playerHand = JSON.parse(playerData.hand);
+      } else if (Array.isArray(playerData.hand)) {
+        playerHand = playerData.hand;
+      }
+    }
+
+    return response.json({
+      game,
+      players,
+      playerHand,
+      currentUserId: user.id,
+    });
+  } catch (error) {
+    console.error("Failed to fetch game state:", error);
+    return response.status(500).json({ error: "Failed to fetch game state" });
+  }
+});
+
+//View a specific game
 router.get("/:id", async (request, response) => {
   const { user } = request.session;
   const gameId = parseInt(request.params.id, 10);
@@ -76,12 +124,33 @@ router.get("/:id", async (request, response) => {
     const players = await GamePlayers.getPlayers(gameId);
     const isPlayer = players.some((p) => p.user_id === user?.id);
 
+    // Get current player's hand
+    let playerHand: string[] = [];
+    if (isPlayer && user) {
+      const playerData = players.find((p) => p.user_id === user.id);
+      console.log(`Player data for user ${user.id}:`, JSON.stringify(playerData, null, 2));
+      if (playerData && playerData.hand) {
+        if (typeof playerData.hand === "string") {
+          playerHand = JSON.parse(playerData.hand);
+        } else if (Array.isArray(playerData.hand)) {
+          playerHand = playerData.hand;
+        } else {
+          playerHand = [];
+        }
+        console.log(`Player ${user.id} final hand:`, playerHand);
+      } else {
+        console.log(`Player ${user.id} has no hand data yet`);
+      }
+    }
+
     response.render("games/game", {
       user,
       game,
       players,
       isPlayer,
+      playerHand,
     });
+    console.log("Rendering game view with playerHand:", playerHand);
   } catch (error) {
     console.error("Failed to fetch game:", error);
     response.status(500).render("errors/error", {
@@ -92,7 +161,7 @@ router.get("/:id", async (request, response) => {
   }
 });
 
-// POST /games/:id/join - Join a game
+// Join a game
 router.post("/:id/join", async (request, response) => {
   const { user } = request.session;
   const gameId = parseInt(request.params.id, 10);
@@ -130,6 +199,13 @@ router.post("/:id/join", async (request, response) => {
     }
 
     await GamePlayers.join(gameId, user.id);
+    
+    // Emit socket event to notify other players
+    const io = request.app.get("io");
+    const updatedGame = await Games.getById(gameId);
+    const players = await GamePlayers.getPlayers(gameId);
+    io.to(`game-${gameId}`).emit("playerJoined", { game: updatedGame, players });
+    
     response.redirect(`/games/${gameId}`);
   } catch (error) {
     console.error("Failed to join game:", error);
@@ -137,7 +213,7 @@ router.post("/:id/join", async (request, response) => {
   }
 });
 
-// POST /games/:id/leave - Leave a game
+// Leave a game
 router.post("/:id/leave", async (request, response) => {
   const { user } = request.session;
   const gameId = parseInt(request.params.id, 10);
@@ -156,7 +232,7 @@ router.post("/:id/leave", async (request, response) => {
   }
 });
 
-//POST /games/:id/start - start a game
+// Start a game
 router.post("/:id/start", async (request, response) => {
   const { user } = request.session;
   const gameId = parseInt(request.params.id, 10);
@@ -203,17 +279,30 @@ const players = await GamePlayers.getPlayers(gameId);
 const playerIds = players.map((p) => p.user_id);
 const deck = shuffle(createDeck());
 const hands = dealAll(deck, playerIds);
+
+console.log("Starting game:", gameId);
+console.log("Players:", playerIds);
+console.log("Deck size:", deck.length);
+console.log("Hands:", hands);
     
 for (const pid of playerIds) {
-  await GamePlayers.updateHand(gameId, pid, hands.get(pid) ?? []);
+  const hand = hands.get(pid) ?? [];
+  console.log(`Updating hand for player ${pid}:`, hand);
+  await GamePlayers.updateHand(gameId, pid, hand);
 }
 await Games.start(gameId, playerIds[0]);
-response.redirect(`/games/${gameId}`);
 
+// Emit socket event to notify players game started
+const io = request.app.get("io");
+const updatedGame = await Games.getById(gameId);
+const updatedPlayers = await GamePlayers.getPlayers(gameId);
+io.to(`game-${gameId}`).emit("gameStarted", { game: updatedGame, players: updatedPlayers });
+
+return response.redirect(`/games/${gameId}`);
 
 } catch (error) {
   console.error("Failure to start game: ", error);
-  response.status(500).json({ error: "Failure to start game..."});
+  return response.status(500).json({ error: "Failure to start game..."});
 }
 
 

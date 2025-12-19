@@ -47,7 +47,7 @@ app.use(
     skip: (req) => req.url.startsWith("/.well-known/"),
   }),
 );
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // Serve static files from public directory (relative to this file's location)

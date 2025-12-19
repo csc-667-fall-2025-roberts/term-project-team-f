@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .env
+# Vite build output (generated)
+src/backend/public/js/
+src/backend/public/assets/

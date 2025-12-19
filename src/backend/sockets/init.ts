@@ -176,10 +176,10 @@ export const initSockets = (httpServer: HttpServer) => {
 
         const lastCards = pile.slice(pile.length - count);
         const ranks = lastCards.map((c) => c.slice(0, -1).toUpperCase());
-        const liar = !declaredRank || ranks.some((r) => r !== declaredRank.toUpperCase());
+        const bullShitter = !declaredRank || ranks.some((r) => r !== declaredRank.toUpperCase());
 
         // Decide who takes the deck
-        const takerId = liar ? lastPlayerId : challengerId;
+        const takerId = bullShitter ? lastPlayerId : challengerId;
         const taker = players.find((p) => p.user_id === takerId);
         if (!taker) {
           socket.emit("error", "Player to collect pile not found");
@@ -210,7 +210,7 @@ export const initSockets = (httpServer: HttpServer) => {
 
         io.to(`game-${data.id}`).emit("playerAction", {
           type: "challengeResult",
-          liar,
+          liar: bullShitter,
           challengerId,
           challengerName,
           challengedId: lastPlayerId,
