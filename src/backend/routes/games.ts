@@ -1,4 +1,4 @@
-import express from "express";
+import express, { response } from "express";
 import { Games, GamePlayers } from "../db";
 
 const router = express.Router();
@@ -153,6 +153,59 @@ router.post("/:id/leave", async (request, response) => {
     response.status(500).json({ error: "Failed to leave game" });
   }
 });
+
+//POST /games/:id/start - start a game
+router.post("/:id/start", async (request, response) => {
+  const { user } = request.session;
+  const gameId = parseInt(request.params.id, 10);
+
+  //error notifications
+  if (!user) {
+    response.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+
+  if (isNaN(gameId)) {
+    response.status(400).json({ error: "invalid game ID"});
+    return;
+  }
+
+  try{
+    const game = await Games.getById(gameId);
+
+    if (!game) {
+      response.status(404).json({ error: "Game not found"});
+      return;
+    }
+
+
+  if (game.created_by !== user.id) {
+    response.status(403).json({ error: "Only the host is allowed to start the game" });
+    return;
+  }
+
+  if (game.state !== "waiting") {
+   response.status(400).json({ error: "Game has already started"});
+    return;
+  }
+
+  const playerCount = await GamePlayers.getPlayerCount(gameId);
+
+  if (playerCount < 2) {
+    response.status(400).json({ error: "Not enough players to start a game"});
+    return;
+  }
+
+  await Games.updateState(gameId, "playing");
+  response.redirect(`/games/${gameId}`);
+
+} catch (error) {
+  console.error("Failure to start game: ", error);
+  response.status(500).json({ error: "Failure to start game..."});
+}
+
+
+}); 
 
 export default router;
 

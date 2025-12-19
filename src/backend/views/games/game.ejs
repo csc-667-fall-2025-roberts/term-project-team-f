@@ -82,12 +82,21 @@
                       </div>
                     <% } %>
                   </div>
-
+                  <!-- Start game -->
                   <% if (isPlayer && players.length >= 2 && game.created_by === user.id) { %>
-                    <button class="btn btn-primary btn-lg mt-6" disabled>
-                      🎮 Start Game (Coming Soon)
-                    </button>
+                    <form id="start-game" >
+                      <button id="start-game-btn" type="submit" class="btn btn-primary btn-lg mt-6">
+                        🎮 Start Game
+                      </button>
+                    </form>
                   <% } %>
+
+                  <script>
+                    const GAME_ID = <%= game.id %>;
+                  </script>
+
+                  <div id="game-root"></div>
+
                 </div>
               </div>
             <% } else { %>
