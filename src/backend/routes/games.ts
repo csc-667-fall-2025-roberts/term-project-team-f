@@ -1,5 +1,7 @@
+import { createDeck, shuffle, dealAll } from "../game/engine";
 import express, { response } from "express";
 import { Games, GamePlayers } from "../db";
+
 
 const router = express.Router();
 
@@ -195,9 +197,19 @@ router.post("/:id/start", async (request, response) => {
     response.status(400).json({ error: "Not enough players to start a game"});
     return;
   }
+    
+// Adding hand and deck stuff
+const players = await GamePlayers.getPlayers(gameId);
+const playerIds = players.map((p) => p.user_id);
+const deck = shuffle(createDeck());
+const hands = dealAll(deck, playerIds);
+    
+for (const pid of playerIds) {
+  await GamePlayers.updateHand(gameId, pid, hands.get(pid) ?? []);
+}
+await Games.start(gameId, playerIds[0]);
+response.redirect(`/games/${gameId}`);
 
-  await Games.updateState(gameId, "playing");
-  response.redirect(`/games/${gameId}`);
 
 } catch (error) {
   console.error("Failure to start game: ", error);
