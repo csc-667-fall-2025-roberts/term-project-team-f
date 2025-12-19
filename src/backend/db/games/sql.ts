@@ -41,6 +41,19 @@ WHERE id = $1
 RETURNING *
 `;
 
+export const START_GAME = `
+UPDATE games
+SET
+state = 'playing',
+current_turn = $2,
+current_rank = NULL,
+pile = '[]',
+last_played_count = 0,
+last_played_by = NULL
+WHERE id = $1
+RETURNING *
+`;
+
 export const UPDATE_GAME_TURN = `
 UPDATE games
 SET current_turn = $2, current_rank = $3
