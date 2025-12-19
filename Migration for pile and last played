@@ -1,0 +1,31 @@
+import { MigrationBuilder, PgType } from "node-pg-migrate";
+
+export async function up(pgm: MigrationBuilder): Promise<void> {
+  pgm.addColumns("games", {
+    pile: {
+      type: PgType.JSONB,
+      notNull: true,
+      default: "'[]'",
+    },
+    last_played_count: {
+      type: PgType.INTEGER,
+      notNull: true,
+      default: 0,
+    },
+    last_played_by: {
+      type: PgType.INTEGER,
+      references: "users",
+      onDelete: "SET NULL",
+    },
+  });
+
+  pgm.createIndex("games", "state");
+  pgm.createIndex("games", "current_turn");
+}
+
+export async function down(pgm: MigrationBuilder): Promise<void> {
+  pgm.dropIndex("games", "current_turn");
+  pgm.dropIndex("games", "state");
+
+  pgm.dropColumns("games", ["pile", "last_played_count", "last_played_by"]);
+}
