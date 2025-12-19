@@ -1,7 +1,7 @@
 export const CREATE_GAME = `
-INSERT INTO games (name, created_by, max_players, state)
-VALUES ($1, $2, $3, 'waiting')
-RETURNING id, name, created_by, state, max_players, created_at
+INSERT INTO games (name, created_by, max_players, state, pile, last_played_count, last_played_by)
+VALUES ($1, $2, $3, 'waiting', '[]'::jsonb, 0, NULL)
+RETURNING id, name, created_by, state, max_players, created_at, pile, last_played_count, last_played_by
 `;
 
 export const GET_GAME_BY_ID = `

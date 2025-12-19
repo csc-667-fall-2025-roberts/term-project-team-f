@@ -7,6 +7,7 @@ import {
   UPDATE_GAME_STATE,
   START_GAME,
   DELETE_GAME,
+  UPDATE_GAME_TURN,
 } from "./sql";
 import type { Game } from "../../../shared/types";
 
@@ -48,5 +49,25 @@ const remove = async (id: number): Promise<void> => {
   await db.none(DELETE_GAME, [id]);
 };
 
-export { create, getById, getAll, getWaiting, updateState, start, remove };
+const updatePile = async (
+  id: number,
+  pile: string[],
+  lastPlayedCount: number,
+  lastPlayedBy: number | null,
+): Promise<Game> => {
+  return await db.one<Game>(
+    `UPDATE games SET pile = $2, last_played_count = $3, last_played_by = $4 WHERE id = $1 RETURNING *`,
+    [id, JSON.stringify(pile), lastPlayedCount, lastPlayedBy]
+  );
+};
+
+const setCurrentTurnAndRank = async (
+  id: number,
+  userId: number,
+  currentRank: string | null,
+): Promise<Game> => {
+  return await db.one<Game>(UPDATE_GAME_TURN, [id, userId, currentRank]);
+};
+
+export { create, getById, getAll, getWaiting, start, updateState, remove, updatePile, setCurrentTurnAndRank };
 
