@@ -5,9 +5,24 @@
     <title><%= game.name %> - Bullshit</title>
 
     <script>
-      const GAME_ID = <%= game.id %>;
-      console.log("GAME_ID loaded:", GAME_ID);
+      window.GAME_ID = <%= game.id %>;
+      window.CURRENT_USER_ID = <%= user.id %>;
+      window.PLAYER_HAND = <% if (typeof playerHand !== 'undefined') { %><%- JSON.stringify(playerHand) %><% } else { %>[]<% } %>;
+      window.GAME_STATE = '<%= game.state %>';
+
+      console.log("GAME_ID loaded:", window.GAME_ID);
+      console.log("CURRENT_USER_ID loaded:", window.CURRENT_USER_ID);
+      console.log("Game state:", window.GAME_STATE);
+      console.log("Player hand loaded:", window.PLAYER_HAND);
+      console.log("Hand length:", window.PLAYER_HAND.length);
+
+      // If game is active but hand is empty, refresh in 1 second
+      if (window.GAME_STATE === 'active' && window.PLAYER_HAND.length === 0) {
+        console.log("Game active but hand empty - reloading in 1 second");
+        setTimeout(() => window.location.reload(), 1000);
+      }
     </script>
+    <script src="/js/Game.js" type="module" defer></script>
   </head>
   <body>
     <div class="game-page">
@@ -84,16 +99,12 @@
                   </div>
                   <!-- Start game -->
                   <% if (isPlayer && players.length >= 2 && game.created_by === user.id) { %>
-                    <form id="start-game" >
+                    <form id="start-game" method="post" action="/games/<%= game.id %>/start">
                       <button id="start-game-btn" type="submit" class="btn btn-primary btn-lg mt-6">
                         🎮 Start Game
                       </button>
                     </form>
                   <% } %>
-
-                  <script>
-                    const GAME_ID = <%= game.id %>;
-                  </script>
 
                   <div id="game-root"></div>
 
@@ -123,12 +134,15 @@
                     <div class="pile-card"></div>
                     <div class="pile-card"></div>
                   </div>
-                  <div class="pile-info">
+                  <div class="pile-info" id="pile">
                     <div class="pile-count">0</div>
                     <div class="pile-label">cards in pile</div>
                   </div>
-                  <div class="current-rank">
-                    <%= game.current_rank || 'Aces' %>
+                  <div class="current-rank" id="current-rank">
+                    Declared: <%= game.current_rank || 'No claim yet' %><% if (game.last_played_count && game.last_played_count > 0) { %> (<%= game.last_played_count %> card<%= game.last_played_count === 1 ? '' : 's' %>)<% } %>
+                  </div>
+                  <div class="next-rank-hint" id="next-rank-hint" style="margin-top: 8px; font-size: 0.9em; color: #ffd700; text-align: center;">
+                    <!-- Will be populated by JavaScript -->
                   </div>
                 </div>
               </div>
@@ -137,46 +151,22 @@
               <div class="hand-area">
                 <div class="hand-header">
                   <h3>🎴 Your Hand</h3>
-                  <span class="badge badge-info">0 cards</span>
+                  <span class="badge badge-info" id="card-count">0 cards</span>
                 </div>
                 
-                <div class="hand-cards">
-                  <!-- Example cards for mockup -->
-                  <div class="playing-card hearts">
-                    <span class="card-rank">A</span>
-                    <span class="card-suit">♥</span>
-                  </div>
-                  <div class="playing-card spades">
-                    <span class="card-rank">K</span>
-                    <span class="card-suit">♠</span>
-                  </div>
-                  <div class="playing-card diamonds">
-                    <span class="card-rank">Q</span>
-                    <span class="card-suit">♦</span>
-                  </div>
-                  <div class="playing-card clubs">
-                    <span class="card-rank">J</span>
-                    <span class="card-suit">♣</span>
-                  </div>
-                  <div class="playing-card hearts">
-                    <span class="card-rank">10</span>
-                    <span class="card-suit">♥</span>
-                  </div>
-                  <div class="playing-card spades selected">
-                    <span class="card-rank">9</span>
-                    <span class="card-suit">♠</span>
-                  </div>
-                  <div class="playing-card diamonds">
-                    <span class="card-rank">7</span>
-                    <span class="card-suit">♦</span>
-                  </div>
+                <div id="game-status" style="padding: 12px; margin-bottom: 16px; background: #1a1a1a; border: 2px solid #333; border-radius: 8px; text-align: center; font-size: 1.1em; font-weight: bold; color: #fff;">
+                  Waiting for game to start...
+                </div>
+                
+                <div class="hand-cards" id="player-hand">
+                  <!-- Cards will be rendered here by JavaScript -->
                 </div>
 
                 <div class="action-buttons">
-                  <button class="btn btn-primary" disabled>
+                  <button class="btn btn-primary" id="play-card-btn" disabled>
                     🃏 Play Cards (0 selected)
                   </button>
-                  <button class="btn btn-warning" disabled>
+                  <button class="btn btn-warning" id="challenge-btn" disabled>
                     🎭 Call Bullshit!
                   </button>
                 </div>
