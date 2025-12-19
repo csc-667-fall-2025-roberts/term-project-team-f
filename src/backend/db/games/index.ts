@@ -5,6 +5,7 @@ import {
   GET_ALL_GAMES,
   GET_WAITING_GAMES,
   UPDATE_GAME_STATE,
+  START_GAME,
   DELETE_GAME,
 } from "./sql";
 import type { Game } from "../../../shared/types";
@@ -31,6 +32,11 @@ const getWaiting = async (): Promise<Game[]> => {
   return await db.manyOrNone<Game>(GET_WAITING_GAMES);
 };
 
+const start = async (id: number, firstTurnUserId: number): Promise<Game> => {
+  return await db.one<Game>(START_GAME, [id, firstTurnUserId]);
+};
+
+
 const updateState = async (
   id: number,
   state: Game["state"],
@@ -42,5 +48,5 @@ const remove = async (id: number): Promise<void> => {
   await db.none(DELETE_GAME, [id]);
 };
 
-export { create, getById, getAll, getWaiting, updateState, remove };
+export { create, getById, getAll, getWaiting, updateState, start, remove };
 
