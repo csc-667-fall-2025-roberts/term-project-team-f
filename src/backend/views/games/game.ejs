@@ -23,6 +23,7 @@
       }
     </script>
     <script src="/js/Game.js" type="module" defer></script>
+    <script src="/js/chat.js" type="module" defer></script>
   </head>
   <body>
     <div class="game-page">
@@ -212,14 +213,14 @@
               <div class="chat-header">
                 <h3>💬 Game Chat</h3>
               </div>
-              <div class="chat-messages" id="game-messages">
+              <div class="chat-messages" id="message-listing">
                 <div class="games-empty" style="padding: 1rem;">
                   <p style="font-size: 0.875rem; color: var(--color-gray-400);">
                     Chat coming soon...
                   </p>
                 </div>
               </div>
-              <div class="chat-input-area">
+              <div class="chat-input-area" id="messsage-submit">
                 <input 
                   type="text" 
                   class="form-input form-input-dark"

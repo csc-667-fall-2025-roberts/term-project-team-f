@@ -1,19 +1,21 @@
 export const CREATE_MESSAGE = `
-INSERT INTO chat_messages (user_id, message)
-VALUES ($1, $2)
-RETURNING id, user_id, message, created_at
+INSERT INTO messages (user_id, game_id, message)
+VALUES ($1, $2, $3)
+RETURNING id, user_id, game_id, message, created_at
 `;
 
-// Get most recent messages with proper JOIN syntax
+// Get most recent messages for a specific game with proper JOIN syntax
 export const RECENT_MESSAGES = `
 SELECT 
-  chat_messages.id,
-  chat_messages.user_id,
-  chat_messages.message,
-  chat_messages.created_at,
+  messages.id,
+  messages.user_id,
+  messages.game_id,
+  messages.message,
+  messages.created_at,
   users.username
-FROM chat_messages
-JOIN users ON users.id = chat_messages.user_id
-ORDER BY chat_messages.created_at DESC
-LIMIT $1
+FROM messages
+JOIN users ON users.id = messages.user_id
+WHERE messages.game_id = $1
+ORDER BY messages.created_at DESC
+LIMIT $2
 `;

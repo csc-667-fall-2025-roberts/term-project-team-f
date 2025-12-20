@@ -41,10 +41,14 @@ export const initSockets = (httpServer: HttpServer) => {
 
     logger.info(`Socket connected: ${session.user.username}`);
     socket.join(session.id);
+    
+    // Auto-join lobby room
+    socket.join("lobby");
+    logger.info(`User ${session.user.username} joined lobby room`);
 
     socket.on("joinGameRoom", (gameId: number) => {
       if (!session?.user) return;
-      const roomName = `game-${gameId}`;
+      const roomName = gameId === 0 ? "lobby" : `game-${gameId}`;
       socket.join(roomName);
       logger.info(`User ${session.user.username} joined room ${roomName}`);
     });
@@ -122,18 +126,41 @@ export const initSockets = (httpServer: HttpServer) => {
         logger.info(`After play, game ${data.id} current_rank=${updatedGame?.current_rank}, last_played_count=${updatedGame?.last_played_count}`);
         const updatedPlayers = await GamePlayers.getPlayers(data.id);
         
-        io.to(`game-${data.id}`).emit("gameUpdate", {
-          game: updatedGame,
-          players: updatedPlayers,
+        // Check for win condition (empty hand)
+        const winner = updatedPlayers.find((p) => {
+          const playerHand = typeof p.hand === "string" ? JSON.parse(p.hand) : p.hand;
+          return Array.isArray(playerHand) && playerHand.length === 0;
         });
+        
+        if (winner) {
+          // Game ended - winner found
+          await Games.updateState(data.id, "finished");
+          const finalGame = await Games.getById(data.id);
+          const finalPlayers = await GamePlayers.getPlayers(data.id);
+          
+          io.to(`game-${data.id}`).emit("gameUpdate", {
+            game: finalGame,
+            players: finalPlayers,
+          });
+          
+          io.to(`game-${data.id}`).emit("gameEnded", {
+            winner: winner.username || `Player ${winner.user_id}`,
+            winnerId: winner.user_id,
+          });
+        } else {
+          io.to(`game-${data.id}`).emit("gameUpdate", {
+            game: updatedGame,
+            players: updatedPlayers,
+          });
 
-        io.to(`game-${data.id}`).emit("playerAction", {
-          type: "playCards",
-          userId: session.user.id,
-          username: session.user.username,
-          cardCount: data.cards.length,
-          declaredRank,
-        });
+          io.to(`game-${data.id}`).emit("playerAction", {
+            type: "playCards",
+            userId: session.user.id,
+            username: session.user.username,
+            cardCount: data.cards.length,
+            declaredRank,
+          });
+        }
 
       } catch (error) {
         logger.error("Error playing cards:", error);
@@ -202,22 +229,45 @@ export const initSockets = (httpServer: HttpServer) => {
 
         const updatedGame = await Games.getById(data.id);
         const updatedPlayers = await GamePlayers.getPlayers(data.id);
-
-        io.to(`game-${data.id}`).emit("gameUpdate", {
-          game: updatedGame,
-          players: updatedPlayers,
+        
+        // Check for win condition (empty hand)
+        const winner = updatedPlayers.find((p) => {
+          const playerHand = typeof p.hand === "string" ? JSON.parse(p.hand) : p.hand;
+          return Array.isArray(playerHand) && playerHand.length === 0;
         });
+        
+        if (winner) {
+          // Game ended - winner found
+          await Games.updateState(data.id, "finished");
+          const finalGame = await Games.getById(data.id);
+          const finalPlayers = await GamePlayers.getPlayers(data.id);
+          
+          io.to(`game-${data.id}`).emit("gameUpdate", {
+            game: finalGame,
+            players: finalPlayers,
+          });
+          
+          io.to(`game-${data.id}`).emit("gameEnded", {
+            winner: winner.username || `Player ${winner.user_id}`,
+            winnerId: winner.user_id,
+          });
+        } else {
+          io.to(`game-${data.id}`).emit("gameUpdate", {
+            game: updatedGame,
+            players: updatedPlayers,
+          });
 
-        io.to(`game-${data.id}`).emit("playerAction", {
-          type: "challengeResult",
-          liar: bullShitter,
-          challengerId,
-          challengerName,
-          challengedId: lastPlayerId,
-          challengedName: lastPlayer.username,
-          declaredRank,
-          revealed: lastCards,
-        });
+          io.to(`game-${data.id}`).emit("playerAction", {
+            type: "challengeResult",
+            liar: bullShitter,
+            challengerId,
+            challengerName,
+            challengedId: lastPlayerId,
+            challengedName: lastPlayer.username,
+            declaredRank,
+            revealed: lastCards,
+          });
+        }
       } catch (error) {
         logger.error("Error handling challenge:", error);
         socket.emit("error", "Failed to resolve challenge");

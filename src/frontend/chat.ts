@@ -5,8 +5,21 @@ import * as messageKeys from "../shared/chat-keys";
 declare const GAME_ID: number;
 const socket = socketIo();
 
-if (typeof GAME_ID !== "undefined"){
+// Join appropriate room (lobby or game)
+if (typeof GAME_ID !== "undefined") {
   socket.emit("joinGameRoom", GAME_ID);
+  
+  // Load existing messages
+  fetch(`/chat/${GAME_ID}`)
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.messages && Array.isArray(data.messages)) {
+        data.messages.forEach((msg: ChatMessage) => {
+          appendMessage(msg.username, msg.created_at, msg.message);
+        });
+      }
+    })
+    .catch((err) => console.error("Failed to load messages:", err));
 }
 
 
@@ -51,7 +64,7 @@ if (!listing || !messageText || !submitButton) {
   };
 
   socket.on(
-    messageKeys.CHAT_LISTING(),
+    messageKeys.CHAT_LISTING(GAME_ID),
     ({ messages }: { messages: ChatMessage[] }) => {
       messages.forEach((msg) => {
         appendMessage(msg.username, msg.created_at, msg.message);
@@ -59,7 +72,7 @@ if (!listing || !messageText || !submitButton) {
     },
   );
 
-  socket.on(messageKeys.CHAT_MESSAGE(), (msg: ChatMessage) => {
+  socket.on(messageKeys.CHAT_MESSAGE(GAME_ID), (msg: ChatMessage) => {
     appendMessage(msg.username, msg.created_at, msg.message);
   });
 
@@ -67,7 +80,7 @@ if (!listing || !messageText || !submitButton) {
     const message = messageText.value.trim();
 
     if (message.length > 0) {
-      fetch("/chat/${GAME_ID}", {
+      fetch(`/chat/${GAME_ID}`, {
         method: "POST",
         body: JSON.stringify({ message }),
         credentials: "include",

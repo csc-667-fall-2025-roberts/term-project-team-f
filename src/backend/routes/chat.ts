@@ -21,13 +21,13 @@ router.post(`/:gameId`, async (request, response) => {
   }
 
   try {
-    const chatMessage = await Chat.create(user.id.toString(), message.trim(), Number(gameId), 
-    );
+    const gameIdNum = Number(gameId);
+    const chatMessage = await Chat.create(user.id.toString(), message.trim(), gameIdNum);
 
     // Broadcast message to all connected clients
     const io = request.app.get("io");
-    const gameId = request.params.gameId;
-    io.to(`game-${gameId}`).emit(messageKeys.CHAT_MESSAGE(), {
+    const roomName = gameIdNum === 0 ? "lobby" : `game-${gameIdNum}`;
+    io.to(roomName).emit(messageKeys.CHAT_MESSAGE(gameIdNum), {
       ...chatMessage,
       username: user.username,
     });
@@ -39,10 +39,12 @@ router.post(`/:gameId`, async (request, response) => {
   }
 });
 
-// GET /chat - Get recent messages (for initial load)
-router.get("/", async (request, response) => {
+// GET /chat/:gameId - Get recent messages for a game (for initial load)
+router.get("/:gameId", async (request, response) => {
+  const { gameId } = request.params;
   try {
-    const messages = await Chat.list(50);
+    const gameIdNum = Number(gameId);
+    const messages = await Chat.list(gameIdNum, 50);
     response.json({ messages: messages.reverse() });
   } catch (error) {
     console.error("Failed to fetch messages:", error);
