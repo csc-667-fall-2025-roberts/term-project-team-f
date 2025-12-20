@@ -29,7 +29,7 @@ export interface Game {
   current_rank: string | null;
   pile: string[];
   last_played_count: number;
-  last_played_by: number | null
+  last_played_by: number | null;
   created_at: Date;
   creator_username?: string;
   player_count?: number;
