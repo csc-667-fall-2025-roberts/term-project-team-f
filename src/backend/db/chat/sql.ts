@@ -5,6 +5,7 @@ RETURNING id, user_id, game_id, message, created_at
 `;
 
 // Get most recent messages for a specific game with proper JOIN syntax
+// game_id = 0 represents lobby chat
 export const RECENT_MESSAGES = `
 SELECT 
   messages.id,

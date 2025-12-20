@@ -114,17 +114,31 @@ document.addEventListener("DOMContentLoaded", async () => {
       
       console.log("Game state loaded:", currentGame);
       console.log("Hand loaded with", currentGame.myHand.length, "cards");
+    } else {
+      console.warn("Failed to fetch game state: response not ok", response.status);
     }
   } catch (error) {
     console.error("Failed to fetch game state:", error);
+    // Continue anyway with default state
   }
   
   initializeGame();
 });
 
+// Track if socket listeners are already registered to prevent duplicates
+let socketListenersInitialized = false;
+
 function initializeGame() {
   // Join the game room
   socket.emit("joinGameRoom", window.GAME_ID);
+  
+  // Only register socket listeners once to prevent duplicates
+  if (socketListenersInitialized) {
+    setupGameButtons();
+    renderGameState();
+    return;
+  }
+  socketListenersInitialized = true;
   
   // check for player joined 
   socket.on("playerJoined", () => {
@@ -158,6 +172,8 @@ function initializeGame() {
         
         console.log("Game state refreshed, my hand:", currentGame.myHand.length, "cards");
         renderGameState();
+      } else {
+        console.warn("Failed to refresh game state: response not ok", response.status);
       }
     } catch (error) {
       console.error("Failed to refresh game state:", error);

@@ -24,6 +24,7 @@ if (!listing || !messageText || !submitButton) {
   // Chat elements not found on this page
 } else {
   let isFirstMessage = true;
+  let socketListenersInitialized = false;
 
   const appendMessage = (username: string, timestamp: Date, message: string) => {
     // Clear placeholder on first message
@@ -58,9 +59,32 @@ if (!listing || !messageText || !submitButton) {
   // Always join room and load messages (lobby uses gameId = 0)
   socket.emit("joinGameRoom", gameId);
   
+  // Only register socket listeners once to prevent duplicates
+  if (!socketListenersInitialized) {
+    socketListenersInitialized = true;
+    
+    socket.on(
+      messageKeys.CHAT_LISTING(gameId),
+      ({ messages }: { messages: ChatMessage[] }) => {
+        messages.forEach((msg) => {
+          appendMessage(msg.username, msg.created_at, msg.message);
+        });
+      },
+    );
+
+    socket.on(messageKeys.CHAT_MESSAGE(gameId), (msg: ChatMessage) => {
+      appendMessage(msg.username, msg.created_at, msg.message);
+    });
+  }
+  
   // Load existing messages
   fetch(`/chat/${gameId}`)
-    .then((res) => res.json())
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`Failed to load messages: ${res.status}`);
+      }
+      return res.json();
+    })
     .then((data) => {
       if (data.messages && Array.isArray(data.messages)) {
         data.messages.forEach((msg: ChatMessage) => {
@@ -69,19 +93,6 @@ if (!listing || !messageText || !submitButton) {
       }
     })
     .catch((err) => console.error("Failed to load messages:", err));
-
-  socket.on(
-    messageKeys.CHAT_LISTING(gameId),
-    ({ messages }: { messages: ChatMessage[] }) => {
-      messages.forEach((msg) => {
-        appendMessage(msg.username, msg.created_at, msg.message);
-      });
-    },
-  );
-
-  socket.on(messageKeys.CHAT_MESSAGE(gameId), (msg: ChatMessage) => {
-    appendMessage(msg.username, msg.created_at, msg.message);
-  });
 
   const sendMessage = () => {
     const message = messageText.value.trim();
@@ -92,7 +103,15 @@ if (!listing || !messageText || !submitButton) {
         body: JSON.stringify({ message }),
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-      });
+      })
+        .then((res) => {
+          if (!res.ok) {
+            console.error("Failed to send message:", res.status);
+          }
+        })
+        .catch((err) => {
+          console.error("Error sending message:", err);
+        });
       messageText.value = "";
     }
   };

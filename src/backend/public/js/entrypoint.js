@@ -1,2 +1,2 @@
-const t=document.querySelector("#test-button");t?.addEventListener("click",e=>{e.preventDefault(),setTimeout(()=>{alert("you clicked 1 sec ago")},1e3)});
+import"./Game.js";import"../assets/index-Ds9AOPLi.js";document.addEventListener("DOMContentLoaded",()=>{const t=document.getElementById("start-game-btn");if(t&&typeof window.GAME_ID<"u"&&window.GAME_ID!==void 0){const e=t.closest("form");e&&e.addEventListener("submit",async n=>{n.preventDefault();try{if(!(await fetch(`/games/${window.GAME_ID}/start`,{method:"POST",headers:{"Content-Type":"application/json"}})).ok){alert("Failed to start the game...");return}t.disabled=!0,window.location.reload()}catch(o){console.error(o),alert("Problem while starting the game...")}})}});
 //# sourceMappingURL=entrypoint.js.map
