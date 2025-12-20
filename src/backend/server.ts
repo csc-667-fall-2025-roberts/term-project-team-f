@@ -74,7 +74,7 @@ app.use((_request, _response, next) => {
 // Error handler middleware (must be last)
 app.use(
   (
-    err: any,
+    err: Error & { status?: number },
     req: express.Request,
     res: express.Response,
     _next: express.NextFunction,

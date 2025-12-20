@@ -6,8 +6,8 @@ const PgSession = connectPgSimple(session);
 
 export const sessionMiddleware = session({
   store: new PgSession({
-    // @ts-ignore
-    pool: db.$pool,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pool: (db as any).$pool,
     tableName: "session",
   }),
   secret: process.env.SESSION_SECRET || "this should not be used",

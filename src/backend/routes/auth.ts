@@ -19,8 +19,9 @@ router.post("/signup", async (request, response) => {
     request.session.user = user;
     
     response.redirect("/lobby");
-  } catch (e: any) {
-    response.render("auth/signup", { error: e });
+  } catch (e) {
+    const error = e instanceof Error ? e : new Error(String(e));
+    response.render("auth/signup", { error });
   }
 });
 
@@ -40,8 +41,9 @@ router.post("/login", async (request, response) => {
     request.session.user = user;
     
     response.redirect("/lobby");
-  } catch (e: any) {
-    response.render("auth/login", { error: e });
+  } catch (e) {
+    const error = e instanceof Error ? e : new Error(String(e));
+    response.render("auth/login", { error });
   }
 });
 

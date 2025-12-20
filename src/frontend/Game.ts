@@ -164,7 +164,7 @@ function initializeGame() {
     }
   });
 
-  socket.on("playerAction", (action: { type: string; data?: any }) => {
+  socket.on("playerAction", (action: { type: string; [key: string]: unknown }) => {
     handlePlayerAction(action);
   });
 
@@ -257,11 +257,21 @@ function challengePlay() {
   });
 }
 
-function handlePlayerAction(action: { type: string; [key: string]: any }) {
+interface ChallengeResultAction {
+  type: "challengeResult";
+  liar: boolean;
+  challengerName: string;
+  challengedName: string;
+  declaredRank: string;
+  revealed: string[];
+}
+
+function handlePlayerAction(action: { type: string; [key: string]: unknown }) {
   console.log("Player action:", action);
 
   if (action.type === "challengeResult") {
-    const { liar, challengerName, challengedName, declaredRank, revealed } = action;
+    const challengeAction = action as ChallengeResultAction;
+    const { liar, challengerName, challengedName, declaredRank, revealed } = challengeAction;
     const verdict = liar ? `${challengedName} was bullshitting!` : `${challengerName} guessed wrong.`;
     const revealText = Array.isArray(revealed) ? `Revealed: ${revealed.join(", ")}` : "";
     alert(`${challengerName} challenged ${challengedName} on ${declaredRank}. ${verdict} ${revealText}`);
