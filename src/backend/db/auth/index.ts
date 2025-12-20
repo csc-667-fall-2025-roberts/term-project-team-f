@@ -26,7 +26,7 @@ const login = async (username: string, clearTextPassword: string) => {
     const { id, username, email, created_at } = secureUser;
     return { id, username, email, created_at };
   } else {
-    throw "Invalid login";
+    throw new Error("Invalid login");
   }
 };
 

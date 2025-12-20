@@ -52,23 +52,23 @@ if (!listing || !messageText || !submitButton) {
   };
 
   // Join appropriate room (lobby or game) and load existing messages
+  // GAME_ID is always defined (0 for lobby, game.id for game pages)
   const gameId = typeof window.GAME_ID !== "undefined" ? window.GAME_ID : 0;
   
-  if (typeof window.GAME_ID !== "undefined") {
-    socket.emit("joinGameRoom", gameId);
-    
-    // Load existing messages
-    fetch(`/chat/${gameId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.messages && Array.isArray(data.messages)) {
-          data.messages.forEach((msg: ChatMessage) => {
-            appendMessage(msg.username, msg.created_at, msg.message);
-          });
-        }
-      })
-      .catch((err) => console.error("Failed to load messages:", err));
-  }
+  // Always join room and load messages (lobby uses gameId = 0)
+  socket.emit("joinGameRoom", gameId);
+  
+  // Load existing messages
+  fetch(`/chat/${gameId}`)
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.messages && Array.isArray(data.messages)) {
+        data.messages.forEach((msg: ChatMessage) => {
+          appendMessage(msg.username, msg.created_at, msg.message);
+        });
+      }
+    })
+    .catch((err) => console.error("Failed to load messages:", err));
 
   socket.on(
     messageKeys.CHAT_LISTING(gameId),
